@@ -35,27 +35,27 @@ ret_t videomem_init(void)
 #define CRT_REG_INDEX 0x3d4
 #define CRT_REG_DATA  0x3d5
 
-  /* selection of the CRT register (cursor start) */
-  outb(0x0a, CRT_REG_INDEX);
+	/* selection of the CRT register (cursor start) */
+	outb(0x0a, CRT_REG_INDEX);
 
-  /* stops the cursor (bit 5: 0/1 E/D) */
-  outb(1 << 5, CRT_REG_DATA);
-
-  return OK;
+	/* stops the cursor (bit 5: 0/1 E/D) */
+	outb(1 << 5, CRT_REG_DATA);
+	
+	return OK;
 }
 
 
 ret_t videomem_cls(unsigned char attribute)
 {/* clears the screen */
 
-  int i;
-  for(i = 0 ; i < LINES*COLUMNS ; i++)
-    {
-      (*video)[i].character = 0;
-      (*video)[i].attribute = attribute;
-    }
+	int i;
+	for(i = 0 ; i < LINES*COLUMNS ; i++)
+	{
+		(*video)[i].character = 0;
+		(*video)[i].attribute = attribute;
+	}
 
-  return OK;  
+	return OK;  
 }
 
 
@@ -64,18 +64,18 @@ ret_t videomem_putstring(unsigned char row, unsigned char col,
 				     const char *str)
 {/* prints a stringn on the screen */
 	
-  unsigned video_offs = row*COLUMNS + col;
+	unsigned video_offs = row*COLUMNS + col;
 
-  if (video_offs >= LINES*COLUMNS)
-    return EINVAL;
+	if (video_offs >= LINES*COLUMNS)
+		return EINVAL;
   
-  for ( ; str && *str && (video_offs < LINES*COLUMNS) ; str++, video_offs++)
-    {
-      (*video)[video_offs].character = (unsigned char)*str;
-      (*video)[video_offs].attribute = attribute;
-    }
+	for ( ; str && *str && (video_offs < LINES*COLUMNS) ; str++, video_offs++)
+	{
+		(*video)[video_offs].character = (unsigned char)*str;
+		(*video)[video_offs].attribute = attribute;
+	}
 
-  return OK;
+	return OK;
 }
 
 
@@ -84,15 +84,15 @@ ret_t videomem_putchar(unsigned char row, unsigned char col,
 				   unsigned char c)
 {/* prints a character on the screen */
 	
-  unsigned video_offs = row*COLUMNS + col;
+	unsigned video_offs = row*COLUMNS + col;
 
-  if (video_offs >= LINES*COLUMNS)
-    return EINVAL;
+	if (video_offs >= LINES*COLUMNS)
+		return EINVAL;
   
-  (*video)[video_offs].character = c;
-  (*video)[video_offs].attribute = attribute;
+	(*video)[video_offs].character = c;
+	(*video)[video_offs].attribute = attribute;
 
-  return OK;
+ 	return OK;
 }
 
 
@@ -101,12 +101,12 @@ ret_t videomem_printf(unsigned char row, unsigned char col,
 				 					const char *format, ...)
 {/* prints a formated text on the screen */
 	
-  char buff[256];
-  va_list ap;
+	char buff[256];
+	va_list ap;
   
-  va_start(ap, format);
-  vsnprintf(buff, sizeof(buff), format, ap);
-  va_end(ap);
+	va_start(ap, format);
+	vsnprintf(buff, sizeof(buff), format, ap);
+	va_end(ap);
   
-  return videomem_putstring(row, col, attribute, buff);
+	return videomem_putstring(row, col, attribute, buff);
 }

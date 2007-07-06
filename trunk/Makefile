@@ -2,8 +2,10 @@ CC=gcc
 CFLAGS  = -Wall -nostdlib -nostdinc -ffreestanding -DKERNEL_AK
 LDFLAGS = --warn-common
 OBJECTS = boot/multiboot.o \
-	  drivers/videomem.o \
-	  core/alibc.o core/akernel.o
+		drivers/videomem.o \
+		core/alibc.o core/akernel.o\
+		arch/gdt.o
+
 
 KERNEL_OBJ   = akernel.elf
 MULTIBOOT_IMAGE = fd.img
