@@ -1,4 +1,4 @@
-/* Multiboot standard */
+/* Boot sector - Multiboot standard */
 	
 #define ASM 1
 

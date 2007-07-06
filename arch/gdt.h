@@ -1,5 +1,5 @@
 /**
- * Akernel - Main code
+ * gdt - Basic segmentation on Basic Flat Model with 2 segments (code/data) 
  * 
  * Copyright (c) 2007 Chabertf
  * 
@@ -23,24 +23,13 @@
  * 
  */
 
-#include <boot/multiboot.h>
-#include <core/alibc.h>
-#include <drivers/videomem.h>
-#include <arch/gdt.h>
+#ifndef _GDT_H_
+#define _GDT_H_
+
+#include <core/errno.h>
+
+/* maps the virtual adress space to the linear space */
+ret_t gdt_init(void);
 
 
-void kmain (unsigned long magic, multiboot_header_t bheader)
-{/* main; called from boot */
-	
-	gdt_init();
-	
-	videomem_init();
-	videomem_cls(VIDEO_FG_WHITE | VIDEO_BG_BLACK);
-	videomem_printf(1, 0, VIDEO_FG_YELLOW | VIDEO_BG_BLUE, "Welcome to akernel");
-	
-	/* idle loop */
-	for(;;)
-		asm("hlt;");
-	
-	return;
-}
+#endif /* _GDT_H_ */
