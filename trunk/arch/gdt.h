@@ -1,6 +1,8 @@
 /**
  * gdt - Basic segmentation on Basic Flat Model (2 segments code&data mapped to
  *       the entire linear adress space.
+ *
+ *			See Intel Architecture Software Developer’s Manual Volume 3 for details.
  * 
  * Copyright (c) 2007 Chabertf
  * 
