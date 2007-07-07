@@ -27,7 +27,7 @@
 #define _VIDEOMEM_H_
 
 #include <core/errno.h>
-
+#include <core/types.h>
 
 /* video memory starts at 0xB8000.*/
 #define VIDEO   0xb8000
@@ -37,7 +37,8 @@
 #define LINES   25
 #define COLUMNS 80
 
-/* 8 bits attributes */
+
+/* 8 bits attribute format: VIDEO_FG_X | VIDEO_BG_X [| VIDEO_FG_BLINK] */
 
 /* foreground color */
 #define VIDEO_FG_BLACK     0
@@ -72,35 +73,45 @@
 
 
 /* 2 bytes screen block:  [char 8b][blink 1b][bg color 3b][fg color 4b] */
-typedef struct {
-  unsigned char character;
-  unsigned char attribute;
-} __attribute__ ((packed)) video_mem[LINES*COLUMNS];
+typedef struct
+{
+	unsigned char character;
+	unsigned char attribute;
+	
+} __attribute__ ((packed)) videomem_vbuff[LINES*COLUMNS];
 
-/* video mem base pointer */
-static volatile video_mem *video = (volatile video_mem*)VIDEO;
 
+/* videomem 'object' structure */
+typedef struct videomem videomem;
+struct videomem
+{
+	/* videomem buffer base pointer */
+	volatile videomem_vbuff *vbuff;
+	
+	/* set the cursor */
+	ret_t (*set_cursor) (videomem *this, bool_t enable);
+	/* clear the screen */
+	ret_t (*cls) (videomem *this, unsigned char attribute);
+	/* print a string on the screen */
+	ret_t (*puts) (videomem *this,
+						unsigned char row, unsigned char col,
+						unsigned char attribute,
+						const char *str);
+	/* print a character on the screen */
+	ret_t (*putc) (videomem *this,
+						unsigned char row, unsigned char col,
+				   	unsigned char attribute,
+				  		unsigned char c);
+	/* print a formated text on the screen */
+	ret_t (*printf) (videomem *this,
+						  unsigned char row, unsigned char col,
+						  unsigned char attribute,
+						  const char *format, ...)
+			__attribute__ ((format (printf, 5, 6)));
+};
 
-/* screen initialisation */
-ret_t videomem_init(void);
+/* videomem constructor */
+videomem videomem_create(void);
 
-/* clears the screen */
-ret_t videomem_cls(unsigned char attribute);
-
-/* prints a stringn on the screen */
-ret_t videomem_putstring(unsigned char row, unsigned char col,
-										unsigned char attribute,
-				    					const char *str);
-
-/* prints a character on the screen */
-ret_t videomem_putchar(unsigned char row, unsigned char col,
-				   					unsigned char attribute,
-				  						unsigned char c);
-
-/* prints a formated text on the screen */
-ret_t videomem_printf(unsigned char row, unsigned char col,
-							unsigned char attribute,
-				 			const char *format, ...)
-     __attribute__ ((format (printf, 4, 5)));
 
 #endif /* _VIDEOMEM_H_ */

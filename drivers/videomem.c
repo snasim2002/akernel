@@ -23,14 +23,14 @@
  * 
  */
 
-#include <core/alibc.h>
+#include <core/libc.h>
 #include <arch/ioports.h>
 
 #include "videomem.h"
 
 
-ret_t videomem_init(void)
-{/* screen initialisation */
+ret_t videomem_set_cursor(videomem *this, bool_t enable)
+{/* set the cursor */
 
 #define CRT_REG_INDEX 0x3d4
 #define CRT_REG_DATA  0x3d5
@@ -39,30 +39,31 @@ ret_t videomem_init(void)
 	outb(0x0a, CRT_REG_INDEX);
 
 	/* stops the cursor (bit 5: 0/1 E/D) */
-	outb(1 << 5, CRT_REG_DATA);
+	outb((enable)?(0 << 5):(1 << 5), CRT_REG_DATA);
 	
 	return OK;
 }
 
 
-ret_t videomem_cls(unsigned char attribute)
+ret_t videomem_cls(videomem *this, unsigned char attribute)
 {/* clears the screen */
 
 	int i;
 	for(i = 0 ; i < LINES*COLUMNS ; i++)
 	{
-		(*video)[i].character = 0;
-		(*video)[i].attribute = attribute;
+		(*this->vbuff)[i].character = 0;
+		(*this->vbuff)[i].attribute = attribute;
 	}
 
 	return OK;  
 }
 
 
-ret_t videomem_putstring(unsigned char row, unsigned char col,
-				     unsigned char attribute,
-				     const char *str)
-{/* prints a stringn on the screen */
+ret_t videomem_puts(videomem *this,
+						  unsigned char row, unsigned char col,
+						  unsigned char attribute,
+						  const char *str)
+{/* print a string on the screen */
 	
 	unsigned video_offs = row*COLUMNS + col;
 
@@ -71,35 +72,37 @@ ret_t videomem_putstring(unsigned char row, unsigned char col,
   
 	for ( ; str && *str && (video_offs < LINES*COLUMNS) ; str++, video_offs++)
 	{
-		(*video)[video_offs].character = (unsigned char)*str;
-		(*video)[video_offs].attribute = attribute;
+		(*this->vbuff)[video_offs].character = (unsigned char)*str;
+		(*this->vbuff)[video_offs].attribute = attribute;
 	}
 
 	return OK;
 }
 
 
-ret_t videomem_putchar(unsigned char row, unsigned char col,
-				   unsigned char attribute,
-				   unsigned char c)
-{/* prints a character on the screen */
+ret_t videomem_putc(videomem *this,
+						  unsigned char row, unsigned char col,
+						  unsigned char attribute,
+						  unsigned char c)
+{/* print a character on the screen */
 	
 	unsigned video_offs = row*COLUMNS + col;
 
 	if (video_offs >= LINES*COLUMNS)
 		return EINVAL;
   
-	(*video)[video_offs].character = c;
-	(*video)[video_offs].attribute = attribute;
+	(*this->vbuff)[video_offs].character = c;
+	(*this->vbuff)[video_offs].attribute = attribute;
 
  	return OK;
 }
 
 
-ret_t videomem_printf(unsigned char row, unsigned char col,
-				 					unsigned char attribute,
-				 					const char *format, ...)
-{/* prints a formated text on the screen */
+ret_t videomem_printf(videomem *this,
+							 unsigned char row, unsigned char col,
+							 unsigned char attribute,
+							 const char *format, ...)
+{/* print a formated text on the screen */
 	
 	char buff[256];
 	va_list ap;
@@ -108,5 +111,22 @@ ret_t videomem_printf(unsigned char row, unsigned char col,
 	vsnprintf(buff, sizeof(buff), format, ap);
 	va_end(ap);
   
-	return videomem_putstring(row, col, attribute, buff);
+	return this->puts(this, row, col, attribute, buff);
+}
+
+
+/* videomem constructor */
+videomem videomem_create(void)
+{
+	videomem this;
+	
+	this.vbuff = (volatile videomem_vbuff*)VIDEO;
+	
+	this.set_cursor = videomem_set_cursor;
+	this.cls = videomem_cls;
+	this.puts = videomem_puts;
+	this.putc = videomem_putc;
+	this.printf = videomem_printf;
+	
+	return this;
 }
