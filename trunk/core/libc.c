@@ -23,7 +23,7 @@
  * 
  */
 
-#include "alibc.h"
+#include "libc.h"
 
 
 void *memcpy(void *dest, const void *src, unsigned int len)
