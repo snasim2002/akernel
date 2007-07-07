@@ -24,7 +24,7 @@
  */
 
 #include <boot/multiboot.h>
-#include <core/alibc.h>
+#include <core/libc.h>
 #include <drivers/videomem.h>
 #include <arch/gdt.h>
 
@@ -32,15 +32,21 @@
 void kmain (unsigned long magic, multiboot_header_t bheader)
 {/* main; called from boot */
 	
-	gdt_init();
+	/* basic segmentation */
+	gdt k_gdt = gdt_create();
 	
-	videomem_init();
-	videomem_cls(VIDEO_FG_WHITE | VIDEO_BG_BLACK);
-	videomem_printf(1, 0, VIDEO_FG_YELLOW | VIDEO_BG_BLUE, "Welcome to akernel");
+	k_gdt.store(&k_gdt);
+	
+	/* a vram object */
+	videomem screen = videomem_create();
+		
+	screen.cls(&screen, VIDEO_FG_WHITE | VIDEO_BG_BLACK);
+	screen.set_cursor(&screen, FALSE);
+	screen.printf(&screen, 1, 0, VIDEO_FG_YELLOW | VIDEO_BG_BLUE, "Welcome to akernel");
 	
 	/* idle loop */
 	for(;;)
-		asm("hlt;");
+		continue;
 	
 	return;
 }

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS  = -Wall -nostdlib -nostdinc -ffreestanding -DKERNEL_AK
+CFLAGS  = -Wall -nostdlib -nostdinc -ffreestanding
 LDFLAGS = --warn-common
 OBJECTS = boot/multiboot.o \
 		drivers/videomem.o \

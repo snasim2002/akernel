@@ -22,8 +22,8 @@
  * THE SOFTWARE.
  * 
  */
-#ifndef _ALIBC_H_
-#define _ALIBC_H_
+#ifndef _LIBC_H_
+#define _LIBC_H_
 
 #include <core/types.h>
 
@@ -65,4 +65,4 @@ int vsnprintf(char *str, size_t len, const char *format, va_list ap);
 int snprintf(char *str, size_t len, const char *format, /*args*/ ...)
   __attribute__((format(printf, 3, 4)));
 
-#endif /* _ALIBC_H_ */
+#endif /* _LIBC_H_ */
