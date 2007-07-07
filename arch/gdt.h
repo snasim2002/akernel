@@ -1,5 +1,6 @@
 /**
- * gdt - Basic segmentation on Basic Flat Model with 3 segments (null,code,data)
+ * gdt - Basic segmentation on Basic Flat Model (2 segments code&data mapped to
+ *       the entire linear adress space.
  * 
  * Copyright (c) 2007 Chabertf
  * 
@@ -56,27 +57,6 @@ struct gdt_register
 	ui32_t base_address; /* linear address of byte 0 */
 	
 } __attribute__((packed));
-
-
-/* creates a segment descriptor from a privilege and a type (code/data) */
-#define SEG_TYPE_CODE 0xb
-#define SEG_TYPE_DATA 0x3
-#define MAKE_DESCRIPTOR(ring,seg_type) \
- ((struct segment_descriptor) { \
-	.segment_limit = 0xffff, \
-	.base_address = 0, \
-	.base_addressx = 0, \
-	.segment_type = seg_type, /* code:Access|Read|0 data:Access|Write|0 */ \
-	.descriptor_type = 1, \
-	.descriptor_privilege = ((ring) & 0x3), \
-	.segment_present = 1, \
-	.segment_limitx = 0xf, \
-	.use_by_soft = 0, \
-	.zero = 0, \
-	.operation_size = 1, \
-	.granularity = 1, \
-	.base_addressxx = 0 \
- })
 
 
 /* gdt 'object' structure */

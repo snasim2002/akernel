@@ -1,6 +1,7 @@
 /**
- * gdt - Basic segmentation on Basic Flat Model with 3 segments (null,code,data)
- * 
+ * gdt - Basic segmentation on Basic Flat Model (2 segments code&data mapped to
+ *       the entire linear adress space.
+ *
  * Copyright (c) 2007 Chabertf
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy 
@@ -27,13 +28,34 @@
 #include <core/types.h>
 
 
+/* creates a segment descriptor from a privilege and a type (code/data) */
+#define SEG_TYPE_CODE 0xb
+#define SEG_TYPE_DATA 0x3
+#define MAKE_DESCRIPTOR(ring,seg_type) \
+ ((struct segment_descriptor) { \
+	.segment_limit = 0xffff, \
+	.base_address = 0, \
+	.base_addressx = 0, \
+	.segment_type = seg_type, /* code:Access-Read-0 data:Access-Write-0 */ \
+	.descriptor_type = 1, \
+	.descriptor_privilege = ((ring) & 0x3), \
+	.segment_present = 1, \
+	.segment_limitx = 0xf, \
+	.use_by_soft = 0, \
+	.zero = 0, \
+	.operation_size = 1, \
+	.granularity = 1, \
+	.base_addressxx = 0 \
+ })
+
+
 ret_t gdt_store(gdt *this)
 {/* store the map (virtual adress space to the linear space) */
 				
-	__asm__ volatile("lgdt %0\n\t"
-						  "ljmp %1, $1f\n\t"
+	__asm__ volatile("lgdt %0\n\t" /* put the gdt address in the gdt register */
+						  "ljmp %1, $1f\n\t" /* reload cs */
 						  "1:\n\t"
-						  "movw %2, %%ax\n\t"
+						  "movw %2, %%ax\n\t" /* reload data segments selector */
 						  "movw %%ax,  %%ss\n\t"
 						  "movw %%ax,  %%ds\n\t"
 						  "movw %%ax,  %%es\n\t"
@@ -41,8 +63,9 @@ ret_t gdt_store(gdt *this)
 						  "movw %%ax,  %%gs"
 						  :
 						  :"m"(this->gdtr),
-						  "i"(8), /* code segment */
-						  "i"(16) /* data segment */
+						  /* segment selector [index 13b][gdt/ldt bit][privilege 2b] */
+						  "i"(8), /* code segment selector [0000 0000 0000 1][0][00] */
+						  "i"(16) /* data segment selector [0000 0000 0001 0][0][00] */
 						  :"memory","eax");
 						 
 	return OK;	
@@ -54,8 +77,11 @@ gdt gdt_create(void)
 {
 	gdt this;
 	
+	/* first entry of the GDT: null segment selector */
 	this.table[0] = (struct segment_descriptor){ 0, };
+	/* code segment mapped to the entire linear adress space */
 	this.table[1] = MAKE_DESCRIPTOR(0, SEG_TYPE_CODE);
+	/* data segment mapped to the entire linear adress space */
 	this.table[2] = MAKE_DESCRIPTOR(0, SEG_TYPE_DATA);
 	
 	this.gdtr.base_address = (ui32_t) this.table;

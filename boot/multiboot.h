@@ -52,7 +52,6 @@
 /* Do not include here in boot.S */
 
 
-
 /* Types */
 
 /* The Multiboot header  */
