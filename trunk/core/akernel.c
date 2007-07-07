@@ -29,8 +29,10 @@
 #include <arch/gdt.h>
 
 
-void kmain (unsigned long magic, multiboot_header_t bheader)
+void kmain (unsigned long magic, unsigned long addr)
 {/* main; called from boot */
+	
+	multiboot_info_t *bheader = (multiboot_info_t *) addr;
 	
 	/* basic segmentation */
 	gdt k_gdt = gdt_create();
@@ -40,10 +42,15 @@ void kmain (unsigned long magic, multiboot_header_t bheader)
 	/* a vram object */
 	videomem screen = videomem_create();
 		
-	screen.cls(&screen, VIDEO_FG_WHITE | VIDEO_BG_BLACK);
+	screen.cls(&screen, VIDEO_BG_BLACK);
 	screen.set_cursor(&screen, FALSE);
-	screen.printf(&screen, 1, 0, VIDEO_FG_YELLOW | VIDEO_BG_BLUE, "Welcome to akernel");
-	
+	screen.printf(&screen, 1, 0, 
+					  VIDEO_FG_YELLOW | VIDEO_BG_BLUE, 
+					  "Welcome to akernel");
+	screen.printf(&screen, 3, 0, 
+					  VIDEO_FG_WHITE,
+					  "%d MiB of RAM",
+					  (unsigned)bheader->mem_upper);
 	/* idle loop */
 	for(;;)
 		continue;
