@@ -3,7 +3,7 @@ CFLAGS  = -Wall -nostdlib -nostdinc -ffreestanding
 LDFLAGS = --warn-common
 OBJECTS = boot/multiboot.o \
 		drivers/videomem.o \
-		core/alibc.o core/akernel.o\
+		core/libc.o core/akernel.o\
 		arch/gdt.o
 
 
