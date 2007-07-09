@@ -1,6 +1,5 @@
 /**
- * gdt - Basic segmentation on Basic Flat Model (2 segments code&data mapped to
- *       the entire linear adress space.
+ * gdt - Basic segmentation (basic flat model)
  *
  * Copyright (c) 2007 Chabertf
  * 
@@ -26,7 +25,35 @@
 
 #include "gdt.h"
 #include <core/types.h>
+#include <core/errno.h>
 
+/* 2* 32 bits segment descriptor */
+struct segment_descriptor
+{
+	ui16_t segment_limit; /* segment size; 0-15 */
+	ui16_t base_address; /* location of the 0 byte of the segment; 0-15 */
+	
+	ui8_t base_addressx; /* base address 16-23 */
+	ui8_t segment_type:4; /* code/data */
+	ui8_t descriptor_type:1; /* sys/code-data */
+	ui8_t descriptor_privilege:2; /* ring 0-3 */
+	ui8_t segment_present:1; /* seg absent/present */
+	ui8_t segment_limitx:4; /* segment size 16-19 */
+	ui8_t use_by_soft:1;
+	ui8_t zero:1;
+	ui8_t operation_size:1; /* 16bits code-data / 32 bits */
+	ui8_t granularity:1; /* size 1B->1MB by 1B / 4kB->4GB by 4kB */
+	ui8_t base_addressxx; /* base address 23-31 */
+	
+} __attribute__((packed));
+
+/* the GDT register */
+struct gdt_register
+{
+	ui16_t table_limit; /* table size */
+	ui32_t base_address; /* linear address of byte 0 */
+	
+} __attribute__((packed, aligned(8)));
 
 /* creates a segment descriptor from a privilege and a type (code/data) */
 #define SEG_TYPE_CODE 0xb
@@ -48,10 +75,25 @@
 	.base_addressxx = 0 \
  })
 
+/* the GDT */
+static struct segment_descriptor gdt[] = { 
+	/* first entry of the GDT: null segment selector */
+	(struct segment_descriptor){ 0, },
+	/* code segment mapped to the entire linear adress space */
+	MAKE_DESCRIPTOR(0, SEG_TYPE_CODE),
+	/* data segment mapped to the entire linear adress space */
+	MAKE_DESCRIPTOR(0, SEG_TYPE_DATA) };
 
-ret_t gdt_store(gdt *this)
-{/* store the map (virtual adress space to the linear space) */
-				
+
+ret_t gdt_setup(void)
+{/* setup the map (virtual adress space to the linear space) */
+	
+	struct gdt_register gdtr;
+	
+	gdtr.base_address = (ui32_t) gdt;
+	
+	gdtr.table_limit = sizeof(gdt) - 1;
+	
 	__asm__ volatile("lgdt %0\n\t" /* put the gdt address in the gdt register */
 						  "ljmp %1, $1f\n\t" /* reload cs */
 						  "1:\n\t"
@@ -62,33 +104,11 @@ ret_t gdt_store(gdt *this)
 						  "movw %%ax,  %%fs\n\t"
 						  "movw %%ax,  %%gs"
 						  :
-						  :"m"(this->gdtr),
+						  :"m"(gdtr),
 						  /* segment selector [index 13b][gdt/ldt bit][privilege 2b] */
 						  "i"(8), /* code segment selector [0000 0000 0000 1][0][00] */
 						  "i"(16) /* data segment selector [0000 0000 0001 0][0][00] */
 						  :"memory","eax");
 						 
 	return OK;	
-}
-
-
-/* gdt constructor */
-gdt gdt_create(void)
-{
-	gdt this;
-	
-	/* first entry of the GDT: null segment selector */
-	this.table[0] = (struct segment_descriptor){ 0, };
-	/* code segment mapped to the entire linear adress space */
-	this.table[1] = MAKE_DESCRIPTOR(0, SEG_TYPE_CODE);
-	/* data segment mapped to the entire linear adress space */
-	this.table[2] = MAKE_DESCRIPTOR(0, SEG_TYPE_DATA);
-	
-	this.gdtr.base_address = (ui32_t) this.table;
-	
-	this.gdtr.table_limit = sizeof(this.table) - 1;
-	
-	this.store = gdt_store;
-	
-	return this;
 }

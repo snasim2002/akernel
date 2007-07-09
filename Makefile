@@ -4,24 +4,22 @@ LDFLAGS = --warn-common
 OBJECTS = boot/multiboot.o \
 		drivers/videomem.o \
 		core/libc.o core/akernel.o\
-		arch/gdt.o
+		arch/gdt.o arch/idt.o
 
-
-KERNEL_OBJ   = akernel.elf
+KERNEL_OBJ = akernel.elf
 MULTIBOOT_IMAGE = fd.img
 PWD := $(shell pwd)
 
-# Main target
 all: $(MULTIBOOT_IMAGE)
 
 $(MULTIBOOT_IMAGE): $(KERNEL_OBJ)
-	./tools/build_image.sh $@ $<
+	sh ./tools/mkdisk.sh $@ $<
+
 
 $(KERNEL_OBJ): $(OBJECTS)
-	$(LD) $(LDFLAGS) -T ./tools/akernel.lds -o $@ $^
-	-nm -C $@ | cut -d ' ' -f 1,3 > akernel.map
+	$(LD) $(LDFLAGS) -T ./boot/akernel.lds -o $@ $^
+	nm -C $@ | cut -d ' ' -f 1,3 > akernel.map
 
--include .mkvars
 
 # Create objects from C source code
 %.o: %.c
@@ -33,10 +31,8 @@ $(KERNEL_OBJ): $(OBJECTS)
 
 # Clean directory
 clean:
-	$(RM) *.img *.o mtoolsrc *~ menu.txt *.img *.elf *.bin *.map
-	$(RM) *.log *.out bochs*
-	$(RM) boot/*.o boot/*~
-	$(RM) drivers/*.o drivers/*~
-	$(RM) carch/*.o arch/*~
-	$(RM) core/*.o core/*~
-	$(RM) tools/*~
+	$(RM) $(MULTIBOOT_IMAGE) menu.lst mtoolsrc $(KERNEL_OBJ) akernel.map
+	$(RM) boot/*.o
+	$(RM) drivers/*.o
+	$(RM) arch/*.o
+	$(RM) core/*.o

@@ -1,6 +1,6 @@
 /**
- * types - Some types
- * 
+ * exception - 
+ *
  * Copyright (c) 2007 Chabertf
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy 
@@ -23,23 +23,3 @@
  * 
  */
 
-
-#ifndef _TYPES_H_
-#define _TYPES_H_
-
-/* virtual address */
-typedef unsigned int vaddr_t;
-
-/* mem size of an object */
-typedef unsigned int size_t;
-
-/* low-level types */
-typedef unsigned long int ui32_t;
-typedef unsigned short int ui16_t;
-typedef unsigned char ui8_t;
-
-typedef enum {FALSE=0, TRUE} bool_t;
-
-#define NULL ((void*)0)
-
-#endif /* _TYPES_H_ */
