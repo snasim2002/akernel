@@ -28,16 +28,16 @@
 
 /* write value to port */
 #define outb(value, port) \
-	__asm__ volatile ("outb %0, %1" \
+	__asm__ volatile ("outb %%al, %%dx" \
 							: \
-							:"a" (value),"Nd" (port))
+							:"a" (value),"d" (port))
 
 /* read byte from port */
 #define inb(port)	({ \
 	unsigned char _v; \
-	__asm__ volatile ("inb %1, %0" \
+	__asm__ volatile ("inb %al, %dx" \
 							:"=a" (_v) \
-							:"Nd" (port)); \
+							:"d" (port)); \
 	_v; })
 
 #endif /* _IOPORTS_H_ */

@@ -1,6 +1,6 @@
 /**
- * types - Some types
- * 
+ * idt - Interruption vectors
+ *
  * Copyright (c) 2007 Chabertf
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy 
@@ -23,23 +23,21 @@
  * 
  */
 
+#ifndef _IDT_H_
+#define _IDT_H_
 
-#ifndef _TYPES_H_
-#define _TYPES_H_
+#include <core/errno.h>
+#include <core/types.h>
 
-/* virtual address */
-typedef unsigned int vaddr_t;
+#define GATES_MAX 256 /* there must not be more than 256 idt entries */ 
 
-/* mem size of an object */
-typedef unsigned int size_t;
+/* setup the idt */
+ret_t idt_setup(void);
 
-/* low-level types */
-typedef unsigned long int ui32_t;
-typedef unsigned short int ui16_t;
-typedef unsigned char ui8_t;
+/* set the handler of an idt entry (if NULL, disable it) */
+ret_t idt_set_handler(int index, vaddr_t handler_address, int ring);
 
-typedef enum {FALSE=0, TRUE} bool_t;
+/* get the handler of an idt entry and its ring */
+ret_t idt_get_handler(int index, vaddr_t *handler_address, int *ring);
 
-#define NULL ((void*)0)
-
-#endif /* _TYPES_H_ */
+#endif /* _IDT_H_ */

@@ -35,9 +35,7 @@ void kmain (unsigned long magic, unsigned long addr)
 	multiboot_info_t *bheader = (multiboot_info_t *) addr;
 	
 	/* basic segmentation */
-	gdt k_gdt = gdt_create();
-	
-	k_gdt.store(&k_gdt);
+	gdt_setup();
 	
 	/* a vram object */
 	videomem screen = videomem_create();
@@ -45,12 +43,12 @@ void kmain (unsigned long magic, unsigned long addr)
 	screen.cls(&screen, VIDEO_BG_BLACK);
 	screen.set_cursor(&screen, FALSE);
 	screen.printf(&screen, 1, 0, 
-					  VIDEO_FG_YELLOW | VIDEO_BG_BLUE, 
+					  VIDEO_FG_YELLOW | VIDEO_BG_BLUE | VIDEO_FG_BLINK, 
 					  "Welcome to akernel");
-	screen.printf(&screen, 3, 0, 
+	screen.printf(&screen, 1, 65, 
 					  VIDEO_FG_WHITE,
 					  "%d MiB of RAM",
-					  (unsigned)bheader->mem_upper);
+					  (unsigned)(bheader->mem_upper >> 10) + 1);
 	/* idle loop */
 	for(;;)
 		continue;
